@@ -2,17 +2,21 @@ import type { User, Rating } from '../types'
 
 export const SEED_CURRENT_USER_ID = 'alice'
 
+// eligible_tool_count is illustrative only — in a real pooledTools integration the host would
+// compute this per person by calling its own policy.engine.evaluate() (or aggregating
+// /community/tools by owner), not relationshipWeb. Mixing all three states here (undefined,
+// null, a real number) on purpose so the dev harness actually exercises each one.
 export const SEED_USERS: User[] = [
   { id: 'alice',  display_name: 'Alice Chen',    host_user_id: 'h-alice',  notes: 'Focal user in this demo' },
-  { id: 'bob',    display_name: 'Bob Martinez',  host_user_id: 'h-bob' },
-  { id: 'carol',  display_name: 'Carol Chen',    host_user_id: 'h-carol',  notes: "Alice's sister" },
-  { id: 'david',  display_name: 'David Kim',     host_user_id: 'h-david' },
-  { id: 'emma',   display_name: 'Emma Williams', host_user_id: 'h-emma' },
+  { id: 'bob',    display_name: 'Bob Martinez',  host_user_id: 'h-bob',    eligible_tool_count: 3 },
+  { id: 'carol',  display_name: 'Carol Chen',    host_user_id: 'h-carol', notes: "Alice's sister", eligible_tool_count: 0 },
+  { id: 'david',  display_name: 'David Kim',     host_user_id: 'h-david',  eligible_tool_count: null },
+  { id: 'emma',   display_name: 'Emma Williams', host_user_id: 'h-emma',   eligible_tool_count: 1 },
   { id: 'frank',  display_name: 'Frank Johnson', host_user_id: 'h-frank' },
-  { id: 'sarah',  display_name: 'Sarah Lee',     host_user_id: 'h-sarah' },
-  { id: 'tom',    display_name: 'Tom Brown',     host_user_id: 'h-tom' },
+  { id: 'sarah',  display_name: 'Sarah Lee',     host_user_id: 'h-sarah',  eligible_tool_count: 2 },
+  { id: 'tom',    display_name: 'Tom Brown',     host_user_id: 'h-tom',    eligible_tool_count: null },
   { id: 'lisa',   display_name: 'Lisa Park',     host_user_id: 'h-lisa' },
-  { id: 'mike',   display_name: 'Mike Davis',    host_user_id: 'h-mike' },
+  { id: 'mike',   display_name: 'Mike Davis',    host_user_id: 'h-mike',   eligible_tool_count: 1 },
 ]
 
 // Connections from multiple owners so client-side picker BFS can traverse 2 hops.

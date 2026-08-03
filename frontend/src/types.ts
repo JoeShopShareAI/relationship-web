@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 export interface User {
   id: string
   display_name: string
@@ -5,6 +7,14 @@ export interface User {
   host_user_id: string
   notes?: string | null
   created_at?: string
+  // How many of this person's tools the CURRENT VIEWER (not this user) is eligible to borrow
+  // per pooledTools' lending-rule policy engine. relationshipWeb has no access to Tool or
+  // policy data at all — this is entirely host-supplied. Three distinct states, not two:
+  //   undefined -> host hasn't wired this; render nothing (fully backward compatible)
+  //   null      -> host wired it, and evaluated this person as NOT eligible for the viewer
+  //   number    -> host wired it, person IS eligible, this many tools (0 is valid: eligible,
+  //                nothing currently listed)
+  eligible_tool_count?: number | null
 }
 
 export interface GraphUser extends User {
@@ -93,12 +103,22 @@ export interface RelationshipMapProps {
   currentUserId: string
   mode?: 'explorer' | 'picker'
   apiUrl?: string
+  // Bearer token attached to every apiUrl request (graph fetch, connection
+  // create/update/delete, positions, ratings, picker, user upsert). Hosts
+  // embedding this package behind an authenticated API must supply this --
+  // without it, requests are sent with no Authorization header at all.
+  authToken?: string
   searchUsers?: (query: string) => Promise<UserSearchResult[]>
   data?: {
     users: User[]
     connections: Array<{ id: number; owner_user_id: string; target_user_id: string; primary_type?: string; types: string[] }>
     ratings: Rating[]
   }
+  // How many hops out from currentUserId to fetch, in apiUrl mode only (controlled/`data` mode
+  // stays depth-1, unchanged — it's host-supplied mock/demo data, not a live multi-hop fetch).
+  // Backend caps this at 3 regardless of what's passed. Defaults to 1 (today's behavior) if
+  // omitted, so this is purely additive for existing hosts.
+  maxHops?: number
   ratingDimensions?: RatingDimension[]
   pickerTitle?: string
   pickerMaxDepth?: number
@@ -108,7 +128,55 @@ export interface RelationshipMapProps {
   onNodeClick?: (user: User) => void
   onConnectionAdd?: (conn: unknown) => void
   onRatingSubmit?: (rating: unknown) => void
+  // Fired when the user clicks a connection inside the detail panel's "their connections"
+  // list, requesting the graph re-center on that person. RelationshipMap does not change
+  // `currentUserId` itself — it's a host-owned prop — so the host must handle this by updating
+  // whatever value it passes as `currentUserId`. Without this callback wired, the list still
+  // renders but rows aren't clickable.
+  //
+  // Controlled (`data`) mode only for now: the list is built from the `data.connections` the
+  // host already supplies in full, so no new data exposure. In `apiUrl` mode there's currently
+  // no backend call for "this other user's owned connections" — deliberately not wired here,
+  // since fetching an arbitrary user's connection list raises an access-control question
+  // (should the current viewer be able to see anyone's connections just by selecting them?)
+  // that belongs in pooledTools' route/auth wiring, not this library.
+  onFocusUser?: (userId: string) => void
+  // Breadcrumb trail from wherever browsing started to the current currentUserId, oldest
+  // first, rendered in the TopBar when there's more than one entry. Host-owned and
+  // host-resolved (names, not just ids) for the same reason onFocusUser is host-owned:
+  // once you've focused past someone, they may have fallen out of graphData.users entirely
+  // (the canvas only shows the current focal user's owned connections), so the library has no
+  // reliable way to resolve an ancestor's display name on its own.
+  focusPath?: Array<{ id: string; name: string }>
   visibleRatingDimensions?: string[]
   showSearch?: boolean
+  // Gates LeftSidebar's own "+ Add person" button (default true, so existing hosts see no
+  // change). That button creates a relmap connection directly (api.createConnection), with no
+  // request/accept step — a host that layers its own consent-based connection-request flow on
+  // top (like pooledTools) should set this false, or the two ways of adding someone diverge:
+  // one asks the other person, one doesn't.
+  showAddPerson?: boolean
+  // TopBar's mode-toggle button text for the 'picker' mode, default 'Picker'. Exists so a host
+  // repurposing picker mode for something else entirely (pooledTools: pending connection
+  // requests, not "select eligible people") can relabel the button without this component
+  // needing to know why.
+  pickerLabel?: string
+  // If supplied, replaces the default <PickerOverlay> content when mode === 'picker'.
+  // PickerOverlay.tsx itself is untouched and still used when this is omitted -- this is an
+  // extension point for a host whose "picker mode" means something this library has no
+  // business knowing about (e.g. pooledTools' pending-request accept/decline). Receives this
+  // component's own graph-refetch function, so the host's content can bring the graph
+  // up to date in place (e.g. after an accept) without forcing a full remount that would lose
+  // the current selection.
+  renderPickerOverlay?: (refresh: () => void) => ReactNode
+  // Fired whenever the user flips between explorer/picker mode via TopBar. `mode` itself stays
+  // seed-only (matches existing behavior) -- this is just notification, for a host that wants
+  // to react to the toggle (e.g. pooledTools clearing a "pending requests" badge).
+  onModeChange?: (mode: 'explorer' | 'picker') => void
+  // If supplied, RightPanel's relationship-type tags become an editable multi-select instead
+  // of read-only. `add` is true to apply a type, false to remove it. Only ever called for a
+  // type on a connection OWNED by currentUserId (RightPanel only renders the editable version
+  // when such a connection exists) -- matches this package's existing selectedEdge gating.
+  onToggleConnectionType?: (targetUserId: string, typeKey: string, add: boolean) => Promise<void>
   height?: string
 }

@@ -14,6 +14,7 @@ interface Props {
   onSelectNode: (id: string) => void
   onAddPerson: (query: string) => void
   showSearch: boolean
+  showAddPerson?: boolean
 }
 
 export function LeftSidebar({
@@ -25,6 +26,7 @@ export function LeftSidebar({
   onSelectNode,
   onAddPerson,
   showSearch,
+  showAddPerson = true,
 }: Props) {
   const [search, setSearch] = useState('')
   const [showLegend, setShowLegend] = useState(false)
@@ -42,8 +44,8 @@ export function LeftSidebar({
   return (
     <div style={{
       width: 220,
-      borderRight: '1px solid #e5e7eb',
-      background: '#fafafa',
+      borderRight: '1px solid #2a251e',
+      background: '#1c1814',
       display: 'flex',
       flexDirection: 'column',
       flexShrink: 0,
@@ -51,7 +53,7 @@ export function LeftSidebar({
     }}>
       {/* Search */}
       {showSearch && (
-        <div style={{ padding: '10px 12px', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid #2a251e' }}>
           <input
             type="text"
             placeholder="Search people…"
@@ -61,10 +63,12 @@ export function LeftSidebar({
               width: '100%',
               padding: '6px 10px',
               borderRadius: 6,
-              border: '1px solid #d1d5db',
+              border: '1px solid #2a251e',
               fontSize: 13,
               outline: 'none',
               boxSizing: 'border-box',
+              background: '#231f19',
+              color: '#c0b8ae',
             }}
           />
         </div>
@@ -85,21 +89,21 @@ export function LeftSidebar({
                 gap: 8,
                 padding: '7px 12px',
                 cursor: 'pointer',
-                background: selectedNodeId === user.id ? '#ede9fe' : 'transparent',
-                borderLeft: selectedNodeId === user.id ? '3px solid #6366f1' : '3px solid transparent',
+                background: selectedNodeId === user.id ? 'rgba(238,85,36,0.12)' : 'transparent',
+                borderLeft: selectedNodeId === user.id ? '3px solid #ee5524' : '3px solid transparent',
               }}
             >
               <div style={{
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
-                background: '#e5e7eb',
+                background: '#2e2920',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 11,
                 fontWeight: 600,
-                color: '#6b7280',
+                color: '#8a7f70',
                 flexShrink: 0,
                 overflow: 'hidden',
               }}>
@@ -109,7 +113,7 @@ export function LeftSidebar({
                 }
               </div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#c0b8ae', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user.display_name}
                 </div>
                 {primaryType && (
@@ -124,27 +128,29 @@ export function LeftSidebar({
       </div>
 
       {/* Add person button */}
-      <div style={{ padding: '10px 12px', borderTop: '1px solid #e5e7eb' }}>
-        <button
-          onClick={() => onAddPerson('')}
-          style={{
-            width: '100%',
-            padding: '7px 0',
-            borderRadius: 6,
-            border: '1px dashed #d1d5db',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: 13,
-            color: '#6b7280',
-            fontWeight: 500,
-          }}
-        >
-          + Add person
-        </button>
-      </div>
+      {showAddPerson && (
+        <div style={{ padding: '10px 12px', borderTop: '1px solid #2a251e' }}>
+          <button
+            onClick={() => onAddPerson('')}
+            style={{
+              width: '100%',
+              padding: '7px 0',
+              borderRadius: 6,
+              border: '1px dashed #3a342c',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: 13,
+              color: '#8a7f70',
+              fontWeight: 500,
+            }}
+          >
+            + Add person
+          </button>
+        </div>
+      )}
 
       {/* Legend toggle */}
-      <div style={{ borderTop: '1px solid #e5e7eb' }}>
+      <div style={{ borderTop: '1px solid #2a251e' }}>
         <button
           onClick={() => setShowLegend(s => !s)}
           style={{
@@ -154,7 +160,7 @@ export function LeftSidebar({
             border: 'none',
             cursor: 'pointer',
             fontSize: 12,
-            color: '#6b7280',
+            color: '#8a7f70',
             textAlign: 'left',
             display: 'flex',
             justifyContent: 'space-between',
@@ -179,7 +185,7 @@ export function LeftSidebar({
                     height: 0,
                   } : {}),
                 }} />
-                <span style={{ fontSize: 11, color: '#374151' }}>{rt.name}</span>
+                <span style={{ fontSize: 11, color: '#8a7f70' }}>{rt.name}</span>
               </div>
             ))}
           </div>

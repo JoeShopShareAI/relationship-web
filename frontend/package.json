@@ -26,9 +26,12 @@
   "dependencies": {
     "@types/d3-force": "^3.0.10",
     "@xyflow/react": "^12.10.2",
-    "d3-force": "^3.0.0"
+    "d3-force": "^3.0.0",
+    "d3-hierarchy": "^3.1.2",
+    "react-d3-tree": "^3.6.6"
   },
   "devDependencies": {
+    "@types/d3-hierarchy": "^3.1.7",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",

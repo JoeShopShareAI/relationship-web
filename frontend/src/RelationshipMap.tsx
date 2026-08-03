@@ -3,6 +3,7 @@ import { ReactFlowProvider } from '@xyflow/react'
 import { useGraphData } from './hooks/useGraphData'
 import { api } from './api'
 import { GraphCanvas } from './components/GraphCanvas'
+import { RadialCanvas } from './components/RadialCanvas'
 import { TopBar } from './components/TopBar'
 import { LeftSidebar } from './components/LeftSidebar'
 import { RightPanel } from './components/RightPanel'
@@ -142,6 +143,7 @@ export function RelationshipMap(props: RelationshipMapProps) {
     currentUserId,
     mode: modeProp = 'explorer',
     apiUrl,
+    authToken,
     searchUsers: searchUsersProp,
     data: controlledInput,
     ratingDimensions = [],
@@ -152,14 +154,23 @@ export function RelationshipMap(props: RelationshipMapProps) {
     onSelect,
     onNodeClick,
     onRatingSubmit,
+    onFocusUser,
+    focusPath,
+    maxHops,
     visibleRatingDimensions: visibleProp,
     showSearch = true,
+    showAddPerson = true,
+    pickerLabel,
+    renderPickerOverlay,
+    onModeChange,
+    onToggleConnectionType,
     height = '600px',
   } = props
 
   const isControlled = controlledInput != null
 
   const [mode, setMode] = useState<'explorer' | 'picker'>(modeProp)
+  const [view, setView] = useState<'force' | 'radial'>('force')
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [visibleDimensions, setVisibleDimensions] = useState<string[]>(
     visibleProp ?? ratingDimensions.map(d => d.key),
@@ -173,6 +184,8 @@ export function RelationshipMap(props: RelationshipMapProps) {
   const { data: fetchedData, loading, error, refresh, setData: setFetchedData } = useGraphData(
     isControlled ? undefined : apiUrl,
     currentUserId,
+    authToken,
+    maxHops,
   )
 
   // Controlled mode: convert input data to GraphData whenever input or focal user changes
@@ -186,9 +199,12 @@ export function RelationshipMap(props: RelationshipMapProps) {
   const graphData = isControlled ? controlledData : fetchedData
   const setData = isControlled ? setControlledData : setFetchedData
 
-  // Picker: client-side BFS or API call
+  // Picker: client-side BFS or API call. Skipped entirely when a host has taken over picker
+  // mode with renderPickerOverlay -- that eligibility computation (and the dimming it drives
+  // on the canvas) is specific to this component's own "select eligible people" semantics,
+  // which don't apply to whatever the host is using picker mode for instead.
   useEffect(() => {
-    if (mode !== 'picker') return
+    if (mode !== 'picker' || renderPickerOverlay) return
     if (isControlled && controlledInput) {
       setPickerEligible(
         clientPickerBFS(controlledInput, currentUserId, pickerDepth, pickerTypes, pickerRequireTypesAlongPath),
@@ -198,11 +214,11 @@ export function RelationshipMap(props: RelationshipMapProps) {
         maxDepth: pickerDepth,
         types: pickerTypes,
         requireAlongPath: pickerRequireTypesAlongPath,
-      })
+      }, authToken)
         .then(res => setPickerEligible(res.eligible))
         .catch(() => {})
     }
-  }, [isControlled, controlledInput, apiUrl, mode, currentUserId, pickerDepth, pickerTypes, pickerRequireTypesAlongPath])
+  }, [isControlled, controlledInput, apiUrl, mode, renderPickerOverlay, currentUserId, pickerDepth, pickerTypes, pickerRequireTypesAlongPath, authToken])
 
   // Seed rating dimensions to the backend on mount
   useEffect(() => {
@@ -210,8 +226,9 @@ export function RelationshipMap(props: RelationshipMapProps) {
     api.upsertRatingDimensions(
       apiUrl,
       ratingDimensions.map((d, i) => ({ key: d.key, label: d.label, icon: d.icon, sort_order: i })),
+      authToken,
     ).catch(() => {})
-  }, [apiUrl, ratingDimensions])
+  }, [apiUrl, ratingDimensions, authToken])
 
   const pickerEligibleIds = useMemo(() => new Set(pickerEligible.map(u => u.id)), [pickerEligible])
 
@@ -243,10 +260,10 @@ export function RelationshipMap(props: RelationshipMapProps) {
         const isPinned = graphData.users.find(u => u.id === nodeId)?.is_pinned ?? false
         api.savePositions(apiUrl, currentUserId, [
           { target_user_id: nodeId, pos_x: x, pos_y: y, is_pinned: isPinned },
-        ]).catch(() => {})
+        ], authToken).catch(() => {})
       }
     },
-    [apiUrl, graphData, currentUserId, setData],
+    [apiUrl, graphData, currentUserId, setData, authToken],
   )
 
   const handleToggleDimension = useCallback((key: string) => {
@@ -274,7 +291,7 @@ export function RelationshipMap(props: RelationshipMapProps) {
             rater_user_id: currentUserId,
             dimension_key: dimensionKey,
             score,
-          })
+          }, authToken)
         : newRating
       if (onRatingSubmit) onRatingSubmit(savedRating)
       setData(prev => {
@@ -291,14 +308,26 @@ export function RelationshipMap(props: RelationshipMapProps) {
         return { ...prev, ratings: newRatings }
       })
     },
-    [apiUrl, selectedNodeId, currentUserId, onRatingSubmit, setData],
+    [apiUrl, selectedNodeId, currentUserId, onRatingSubmit, setData, authToken],
+  )
+
+  // Wraps the host's onToggleConnectionType with a refetch afterward, so RightPanel's chips
+  // reflect the change immediately without the host needing its own refresh mechanism (and
+  // without losing the current selection the way remounting this whole component would).
+  const handleToggleConnectionType = useCallback(
+    async (targetUserId: string, typeKey: string, add: boolean) => {
+      if (!onToggleConnectionType) return
+      await onToggleConnectionType(targetUserId, typeKey, add)
+      refresh()
+    },
+    [onToggleConnectionType, refresh],
   )
 
   const handleSearchUsers = useCallback(async (query: string): Promise<UserSearchResult[]> => {
     if (searchUsersProp) return searchUsersProp(query)
-    if (apiUrl) return api.searchUsers(apiUrl, query, graphData?.users.map(u => u.id))
+    if (apiUrl) return api.searchUsers(apiUrl, query, graphData?.users.map(u => u.id), authToken)
     return []
-  }, [searchUsersProp, apiUrl, graphData])
+  }, [searchUsersProp, apiUrl, graphData, authToken])
 
   const handleAddConnectionConfirm = useCallback(async (
     targetUser: UserSearchResult,
@@ -311,17 +340,17 @@ export function RelationshipMap(props: RelationshipMapProps) {
       display_name: targetUser.display_name,
       host_user_id: targetUser.id,
       photo_url: targetUser.photo_url ?? undefined,
-    })
+    }, authToken)
     const allTypes = [primaryType, ...secondaryTypes]
     await api.createConnection(apiUrl, {
       owner_user_id: currentUserId,
       target_user_id: targetUser.id,
       primary_type: primaryType,
       types: allTypes,
-    })
+    }, authToken)
     setAddingConnection(false)
     refresh()
-  }, [apiUrl, currentUserId, refresh])
+  }, [apiUrl, currentUserId, refresh, authToken])
 
   const handlePickerConfirm = useCallback(
     (users: User[]) => {
@@ -356,14 +385,34 @@ export function RelationshipMap(props: RelationshipMapProps) {
     ? graphData.edges.find(e => e.owner_user_id === currentUserId && e.target_user_id === selectedNodeId) ?? null
     : null
 
+  // Now works in BOTH modes, unlike when this was first built: apiUrl mode used to only ever
+  // fetch the focal user's own depth-1 edges, so a selected non-focal person's own connections
+  // were never in graphData at all. Now that the backend returns real multi-hop data
+  // (max_hops), graphData.edges already contains edges owned by other visible people too —
+  // this just reads what's already there instead of needing controlledInput specifically.
+  const selectedUserConnections = selectedNodeId
+    ? graphData.edges
+        .filter(e => e.owner_user_id === selectedNodeId)
+        .map(e => ({
+          id: e.target_user_id,
+          name: graphData.users.find(u => u.id === e.target_user_id)?.display_name ?? e.target_user_id,
+          types: e.types,
+        }))
+    : null
+
   return (
     <div style={{ height, display: 'flex', flexDirection: 'column', fontFamily: 'system-ui, -apple-system, sans-serif', overflow: 'hidden', background: '#fff' }}>
       <TopBar
         mode={mode}
-        onModeChange={setMode}
+        onModeChange={m => { setMode(m); onModeChange?.(m) }}
+        view={view}
+        onViewChange={setView}
         ratingDimensions={ratingDimensions}
         visibleRatingDimensions={visibleDimensions}
         onToggleDimension={handleToggleDimension}
+        focusPath={focusPath}
+        onFocusUser={onFocusUser}
+        pickerLabel={pickerLabel}
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
@@ -376,22 +425,35 @@ export function RelationshipMap(props: RelationshipMapProps) {
           onSelectNode={handleNodeClick}
           onAddPerson={() => setAddingConnection(true)}
           showSearch={showSearch}
+          showAddPerson={showAddPerson}
         />
 
-        <ReactFlowProvider>
-          <GraphCanvas
+        {view === 'force' ? (
+          <ReactFlowProvider>
+            <GraphCanvas
+              graphData={graphData}
+              currentUserId={currentUserId}
+              selectedNodeId={selectedNodeId}
+              ratingDimensions={ratingDimensions}
+              visibleRatingDimensions={visibleDimensions}
+              pickerMode={mode === 'picker' && !renderPickerOverlay}
+              pickerEligibleIds={pickerEligibleIds}
+              onNodeClick={handleNodeClick}
+              onNodeDragStop={handleNodeDragStop}
+              height="100%"
+            />
+          </ReactFlowProvider>
+        ) : (
+          <RadialCanvas
             graphData={graphData}
             currentUserId={currentUserId}
             selectedNodeId={selectedNodeId}
-            ratingDimensions={ratingDimensions}
-            visibleRatingDimensions={visibleDimensions}
-            pickerMode={mode === 'picker'}
+            pickerMode={mode === 'picker' && !renderPickerOverlay}
             pickerEligibleIds={pickerEligibleIds}
             onNodeClick={handleNodeClick}
-            onNodeDragStop={handleNodeDragStop}
             height="100%"
           />
-        </ReactFlowProvider>
+        )}
 
         <RightPanel
           user={selectedUser}
@@ -401,6 +463,10 @@ export function RelationshipMap(props: RelationshipMapProps) {
           ratingDimensions={ratingDimensions}
           onRate={handleRate}
           onClose={() => setSelectedNodeId(null)}
+          connections={selectedUserConnections}
+          onFocusUser={onFocusUser}
+          allRelationshipTypes={graphData.relationship_types}
+          onToggleConnectionType={onToggleConnectionType ? handleToggleConnectionType : undefined}
         />
 
         {addingConnection && graphData && (
@@ -413,19 +479,21 @@ export function RelationshipMap(props: RelationshipMapProps) {
         )}
 
         {mode === 'picker' && (
-          <PickerOverlay
-            title={pickerTitle}
-            eligibleUsers={pickerEligible}
-            allUsersInGraph={graphData.users.length - 1}
-            relationshipTypes={graphData.relationship_types}
-            maxDepth={pickerDepth}
-            allowedTypes={pickerTypes}
-            requireAlongPath={pickerRequireTypesAlongPath}
-            onDepthChange={setPickerDepth}
-            onTypesChange={setPickerTypes}
-            onConfirm={handlePickerConfirm}
-            onCancel={() => setMode('explorer')}
-          />
+          renderPickerOverlay ? renderPickerOverlay(refresh) : (
+            <PickerOverlay
+              title={pickerTitle}
+              eligibleUsers={pickerEligible}
+              allUsersInGraph={graphData.users.length - 1}
+              relationshipTypes={graphData.relationship_types}
+              maxDepth={pickerDepth}
+              allowedTypes={pickerTypes}
+              requireAlongPath={pickerRequireTypesAlongPath}
+              onDepthChange={setPickerDepth}
+              onTypesChange={setPickerTypes}
+              onConfirm={handlePickerConfirm}
+              onCancel={() => setMode('explorer')}
+            />
+          )
         )}
       </div>
     </div>

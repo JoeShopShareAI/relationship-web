@@ -1,6 +1,8 @@
 import { memo, useState } from 'react'
-import type { EdgeProps } from '@xyflow/react'
-import type { GraphEdgeType } from '../types'
+import { useInternalNode, type EdgeProps } from '@xyflow/react'
+import type { GraphEdgeType, GraphUser } from '../types'
+import type { RelationshipNodeData } from './RelationshipNode'
+import { nodeDiameter } from './RelationshipNode'
 
 export interface RelationshipEdgeData {
   primary_type: string
@@ -9,15 +11,52 @@ export interface RelationshipEdgeData {
   [key: string]: unknown
 }
 
+// RelationshipNode renders as a circle at the TOP of a taller flex column (avatar, then name
+// label, then rating chips below it) — not a circle centered in its own bounding box. Fixed
+// Top/Bottom Handles (as this used to use) place edge endpoints at the box's top/bottom
+// regardless of the actual angle to the other node, and "bottom" lands well past the circle,
+// near the rating chips — which is exactly why edges looked disconnected from the bubbles.
+// This computes the true point where the line between the two circles' centers crosses each
+// circle's own boundary, so the edge always visually touches the node it connects to.
+function circleCenter(internalNode: ReturnType<typeof useInternalNode>): { x: number; y: number; r: number } | null {
+  if (!internalNode?.measured?.width || !internalNode.measured.height) return null
+  const data = internalNode.data as RelationshipNodeData
+  const diameter = nodeDiameter(data.user as GraphUser, data.isFocal)
+  const r = diameter / 2
+  const { x: left, y: top } = internalNode.internals.positionAbsolute
+  return {
+    x: left + internalNode.measured.width / 2, // circle is horizontally centered in the box
+    y: top + r,                                 // circle is the first child, top-aligned
+    r,
+  }
+}
+
 export const RelationshipEdge = memo(function RelationshipEdge({
-  sourceX, sourceY, targetX, targetY, data,
+  source, target, data,
 }: EdgeProps) {
   const [hovered, setHovered] = useState(false)
+  const sourceInternal = useInternalNode(source)
+  const targetInternal = useInternalNode(target)
   const edgeData = data as RelationshipEdgeData
   const types = edgeData?.types ?? []
   const dimmed = edgeData?.dimmed ?? false
 
   if (types.length === 0) return null
+
+  const sourceCircle = circleCenter(sourceInternal)
+  const targetCircle = circleCenter(targetInternal)
+  if (!sourceCircle || !targetCircle) return null
+
+  const dxCenters = targetCircle.x - sourceCircle.x
+  const dyCenters = targetCircle.y - sourceCircle.y
+  const centerDist = Math.sqrt(dxCenters * dxCenters + dyCenters * dyCenters) || 1
+  const ux = dxCenters / centerDist
+  const uy = dyCenters / centerDist
+
+  const sourceX = sourceCircle.x + ux * sourceCircle.r
+  const sourceY = sourceCircle.y + uy * sourceCircle.r
+  const targetX = targetCircle.x - ux * targetCircle.r
+  const targetY = targetCircle.y - uy * targetCircle.r
 
   const primary = types.find(t => t.key === edgeData?.primary_type) ?? types[0]
   const secondaries = types.filter(t => t.key !== primary.key)
@@ -44,37 +83,40 @@ export const RelationshipEdge = memo(function RelationshipEdge({
       onMouseLeave={() => setHovered(false)}
     >
       {/* Wide invisible hit area */}
-      <path d={d} fill="none" stroke="transparent" strokeWidth={14} />
+      <path d={d} style={{ fill: 'none', stroke: 'transparent', strokeWidth: 14 }} />
 
-      {/* Primary type line */}
+      {/* Primary type line — inline styles override ReactFlow's CSS class rules */}
       <path
         d={d}
-        fill="none"
-        stroke={primary.color_hex}
-        strokeWidth={2.5}
-        strokeDasharray={primary.edge_style === 'dashed' ? '8 4' : undefined}
-        strokeLinecap="round"
+        style={{
+          fill: 'none',
+          stroke: primary.color_hex || '#c0b8ae',
+          strokeWidth: 2.5,
+          strokeDasharray: primary.edge_style === 'dashed' ? '8 4' : undefined,
+          strokeLinecap: 'round',
+        }}
       />
 
-      {/* Secondary-type indicator dots on the line when not hovered */}
-      {!hovered && secondaries.length > 0 && (
+      {/* Multi-type indicator: one colored dot per secondary type, centered on midpoint */}
+      {!hovered && secondaries.length > 0 && secondaries.map((t, i) => (
         <circle
-          cx={tipX}
+          key={t.key}
+          cx={tipX + (i - (secondaries.length - 1) / 2) * 11}
           cy={tipY}
-          r={4}
-          fill="#fff"
-          stroke={primary.color_hex}
+          r={4.5}
+          fill={t.color_hex}
+          stroke="#18150f"
           strokeWidth={1.5}
         />
-      )}
+      ))}
 
-      {/* Hover tooltip listing secondary types */}
-      {hovered && secondaries.length > 0 && (
+      {/* Hover tooltip: show ALL relationship types (primary + secondary) */}
+      {hovered && (
         <foreignObject
           x={tipX - 90}
-          y={tipY - 12 - secondaries.length * 22}
+          y={tipY - 12 - types.length * 22}
           width={180}
-          height={16 + secondaries.length * 22}
+          height={10 + types.length * 22}
           style={{ pointerEvents: 'none', overflow: 'visible' }}
         >
           <div style={{
@@ -87,8 +129,8 @@ export const RelationshipEdge = memo(function RelationshipEdge({
             boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
             whiteSpace: 'nowrap',
           }}>
-            {secondaries.map(t => (
-              <div key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+            {types.map((t, i) => (
+              <div key={t.key} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: i < types.length - 1 ? 4 : 0 }}>
                 <div style={{
                   width: 8,
                   height: 8,

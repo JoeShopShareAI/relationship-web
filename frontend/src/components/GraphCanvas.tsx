@@ -5,6 +5,7 @@ import {
   Controls,
   useNodesState,
   useEdgesState,
+  useReactFlow,
   type Node,
   type Edge,
 } from '@xyflow/react'
@@ -109,6 +110,11 @@ export function GraphCanvas({
 
   const [rfNodes, setRfNodes] = useNodesState<Node>([])
   const [rfEdges, setRfEdges] = useEdgesState<Edge>([])
+  const { fitView } = useReactFlow()
+  const hasFittedRef = useRef(false)
+
+  // Reset fit flag whenever the focal user changes
+  useEffect(() => { hasFittedRef.current = false }, [currentUserId])
 
   const handleTick = useCallback(
     (positions: Map<string, { x: number; y: number }>) => {
@@ -119,8 +125,13 @@ export function GraphCanvas({
           return { ...n, position: pos }
         }),
       )
+      // Defer fitView until the force layout has spread nodes out from (0,0)
+      if (!hasFittedRef.current && positions.size > 0) {
+        hasFittedRef.current = true
+        setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 0)
+      }
     },
-    [setRfNodes],
+    [setRfNodes, fitView],
   )
 
   const { fixNode } = useForceLayout(
@@ -207,13 +218,17 @@ export function GraphCanvas({
         onNodeDragStart={handleNodeDragStart}
         onNodeDrag={handleNodeDrag}
         onNodeDragStop={handleNodeDragStop}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
         minZoom={0.2}
         maxZoom={2}
+        style={{ background: '#18150f' }}
+        // MIT license (checked node_modules/@xyflow/react/LICENSE directly, no field-of-use
+        // restriction) and hideAttribution is a documented public option, not a workaround --
+        // the unhidden badge was one of the three reasons this panel was removed from
+        // pooledTools before.
+        proOptions={{ hideAttribution: true }}
       >
-        <Background gap={24} color="#f1f5f9" />
-        <Controls />
+        <Background gap={28} color="#2a251e" variant={'dots' as any} />
+        <Controls style={{ button: { background: '#2e2920', border: '1px solid #3a342c', color: '#c0b8ae' } } as any} />
       </ReactFlow>
     </div>
   )

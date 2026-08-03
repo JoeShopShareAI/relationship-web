@@ -61,31 +61,32 @@ export function PickerOverlay({
     <div style={{
       position: 'absolute',
       inset: 0,
-      background: 'rgba(0,0,0,0.35)',
+      background: 'rgba(0,0,0,0.55)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 100,
     }}>
       <div style={{
-        background: '#fff',
+        background: '#231f19',
         borderRadius: 12,
         width: 480,
         maxHeight: '80vh',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.6)',
+        border: '1px solid #2a251e',
       }}>
         {/* Header */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#111827' }}>{title}</div>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #2a251e' }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#f0ebe4' }}>{title}</div>
         </div>
 
         {/* Filters */}
-        <div style={{ padding: '12px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ padding: '12px 20px', borderBottom: '1px solid #2a251e', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {/* Depth */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500, minWidth: 60 }}>Depth</span>
+            <span style={{ fontSize: 12, color: '#8a7f70', fontWeight: 500, minWidth: 60 }}>Depth</span>
             <div style={{ display: 'flex', gap: 6 }}>
               {[1, 2, 3].map(d => (
                 <button
@@ -94,11 +95,11 @@ export function PickerOverlay({
                   style={{
                     padding: '3px 12px',
                     borderRadius: 20,
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid #2a251e',
                     cursor: 'pointer',
                     fontSize: 12,
-                    background: localDepth === d ? '#6366f1' : '#f9fafb',
-                    color: localDepth === d ? '#fff' : '#374151',
+                    background: localDepth === d ? '#ee5524' : '#2e2920',
+                    color: localDepth === d ? '#fff' : '#8a7f70',
                     fontWeight: 500,
                   }}
                 >
@@ -110,7 +111,7 @@ export function PickerOverlay({
 
           {/* Type filter chips */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 500, minWidth: 60, paddingTop: 4 }}>Types</span>
+            <span style={{ fontSize: 12, color: '#8a7f70', fontWeight: 500, minWidth: 60, paddingTop: 4 }}>Types</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {relationshipTypes.map(rt => {
                 const active = localTypes.includes(rt.key)
@@ -121,11 +122,11 @@ export function PickerOverlay({
                     style={{
                       padding: '2px 10px',
                       borderRadius: 20,
-                      border: `1px solid ${active ? rt.color_hex : '#e5e7eb'}`,
+                      border: `1px solid ${active ? rt.color_hex : '#2a251e'}`,
                       cursor: 'pointer',
                       fontSize: 11,
-                      background: active ? rt.color_hex + '22' : '#f9fafb',
-                      color: active ? rt.color_hex : '#6b7280',
+                      background: active ? rt.color_hex + '22' : '#2e2920',
+                      color: active ? rt.color_hex : '#8a7f70',
                       fontWeight: active ? 600 : 400,
                     }}
                   >
@@ -140,7 +141,7 @@ export function PickerOverlay({
         {/* Eligible user list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
           {eligibleUsers.length === 0 && (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+            <div style={{ padding: '20px', textAlign: 'center', color: '#8a7f70', fontSize: 13 }}>
               No eligible people found with these filters
             </div>
           )}
@@ -154,19 +155,19 @@ export function PickerOverlay({
                 gap: 10,
                 padding: '8px 20px',
                 cursor: 'pointer',
-                background: selected.has(user.id) ? '#ede9fe' : 'transparent',
+                background: selected.has(user.id) ? 'rgba(238,85,36,0.12)' : 'transparent',
               }}
             >
               <input
                 type="checkbox"
                 checked={selected.has(user.id)}
                 onChange={() => {}}
-                style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#6366f1' }}
+                style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#ee5524' }}
               />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#111827' }}>{user.display_name}</div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#c0b8ae' }}>{user.display_name}</div>
                 {user.hop_count > 1 && user.path.length > 1 && (
-                  <div style={{ fontSize: 11, color: '#9ca3af' }}>
+                  <div style={{ fontSize: 11, color: '#8a7f70' }}>
                     via {user.path.slice(1, -1).join(' → ')}
                   </div>
                 )}
@@ -174,9 +175,9 @@ export function PickerOverlay({
               <span style={{
                 padding: '1px 7px',
                 borderRadius: 10,
-                background: '#f3f4f6',
+                background: '#2e2920',
                 fontSize: 11,
-                color: '#6b7280',
+                color: '#8a7f70',
               }}>
                 {user.hop_count === 1 ? 'direct' : `${user.hop_count} hops`}
               </span>
@@ -187,20 +188,20 @@ export function PickerOverlay({
         {/* Footer */}
         <div style={{
           padding: '12px 20px',
-          borderTop: '1px solid #e5e7eb',
+          borderTop: '1px solid #2a251e',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          <div style={{ fontSize: 12, color: '#6b7280' }}>
+          <div style={{ fontSize: 12, color: '#8a7f70' }}>
             <span style={{ color: '#1d9e75', fontWeight: 600 }}>{eligibleUsers.length} eligible</span>
-            {selected.size > 0 && <span style={{ color: '#6366f1', fontWeight: 600 }}> · {selected.size} selected</span>}
+            {selected.size > 0 && <span style={{ color: '#ee5524', fontWeight: 600 }}> · {selected.size} selected</span>}
             {ineligibleCount > 0 && <span> · {ineligibleCount} ineligible</span>}
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={onCancel}
-              style={{ padding: '6px 16px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 13, color: '#374151' }}
+              style={{ padding: '6px 16px', borderRadius: 6, border: '1px solid #3a342c', background: '#2e2920', cursor: 'pointer', fontSize: 13, color: '#c0b8ae' }}
             >
               Cancel
             </button>
@@ -211,8 +212,8 @@ export function PickerOverlay({
                 padding: '6px 16px',
                 borderRadius: 6,
                 border: 'none',
-                background: selected.size > 0 ? '#6366f1' : '#e5e7eb',
-                color: selected.size > 0 ? '#fff' : '#9ca3af',
+                background: selected.size > 0 ? '#ee5524' : '#2e2920',
+                color: selected.size > 0 ? '#fff' : '#8a7f70',
                 cursor: selected.size > 0 ? 'pointer' : 'default',
                 fontSize: 13,
                 fontWeight: 600,
