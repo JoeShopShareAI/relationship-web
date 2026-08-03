@@ -9,6 +9,7 @@ import { LeftSidebar } from './components/LeftSidebar'
 import { RightPanel } from './components/RightPanel'
 import { PickerOverlay } from './components/PickerOverlay'
 import { AddConnectionOverlay } from './components/AddConnectionOverlay'
+import { toDirectGraphData } from './utils/directConnections'
 import type {
   RelationshipMapProps,
   UserSearchResult,
@@ -380,6 +381,12 @@ export function RelationshipMap(props: RelationshipMapProps) {
 
   if (!graphData) return null
 
+  // Both canvases only draw the focal user's own outgoing connections -- the multi-hop
+  // closure the backend returns is still needed as-is by LeftSidebar, RightPanel's selected-
+  // person detail (below), and picker eligibility, so this is scoped to the two canvas props
+  // rather than applied to `graphData` itself.
+  const canvasGraphData = toDirectGraphData(graphData, currentUserId)
+
   const selectedUser = graphData.users.find(u => u.id === selectedNodeId) ?? null
   const selectedEdge = selectedNodeId
     ? graphData.edges.find(e => e.owner_user_id === currentUserId && e.target_user_id === selectedNodeId) ?? null
@@ -431,7 +438,7 @@ export function RelationshipMap(props: RelationshipMapProps) {
         {view === 'force' ? (
           <ReactFlowProvider>
             <GraphCanvas
-              graphData={graphData}
+              graphData={canvasGraphData}
               currentUserId={currentUserId}
               selectedNodeId={selectedNodeId}
               ratingDimensions={ratingDimensions}
@@ -445,7 +452,7 @@ export function RelationshipMap(props: RelationshipMapProps) {
           </ReactFlowProvider>
         ) : (
           <RadialCanvas
-            graphData={graphData}
+            graphData={canvasGraphData}
             currentUserId={currentUserId}
             selectedNodeId={selectedNodeId}
             pickerMode={mode === 'picker' && !renderPickerOverlay}
