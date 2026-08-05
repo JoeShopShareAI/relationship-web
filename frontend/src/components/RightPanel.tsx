@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { MouseEvent } from 'react'
 import type { GraphUser, GraphEdge, GraphEdgeType, Rating, RatingDimension, RelationshipType } from '../types'
 
@@ -17,7 +17,7 @@ interface Props {
   // The selected user's own connections — null when unavailable (see the onFocusUser doc
   // comment on RelationshipMapProps), empty array when they genuinely have none.
   connections?: Array<{ id: string; name: string; types: GraphEdgeType[] }> | null
-  onFocusUser?: (userId: string) => void
+  onFocusUser?: (userId: string, displayName: string) => void
   // Full catalog of relationship types (not just ones already applied) — needed to offer types
   // not yet set, only actually used when onToggleConnectionType is supplied.
   allRelationshipTypes?: RelationshipType[]
@@ -55,6 +55,15 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
   const [ratingValues, setRatingValues] = useState<Record<string, number>>({})
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({})
   const [togglingTypes, setTogglingTypes] = useState<Record<string, boolean>>({})
+
+  // Dev-only nudge for integrators who haven't wired onFocusUser -- never rendered in the UI
+  // itself, since end users have no way to act on it and it isn't an error, just an
+  // unimplemented affordance (rows still render, just aren't clickable).
+  useEffect(() => {
+    if (!onFocusUser && connections && connections.length > 0) {
+      console.warn('[relationship-map] RightPanel: onFocusUser prop not supplied — rows in the connections list are not clickable.')
+    }
+  }, [onFocusUser, connections])
 
   if (!user) {
     return (
@@ -274,7 +283,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
                   return (
                     <Row
                       key={c.id}
-                      {...(onFocusUser ? { onClick: () => onFocusUser(c.id) } : {})}
+                      {...(onFocusUser ? { onClick: () => onFocusUser(c.id, c.name) } : {})}
                       style={{
                         all: onFocusUser ? 'unset' : undefined,
                         cursor: onFocusUser ? 'pointer' : 'default',
@@ -305,11 +314,6 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
                   )
                 })}
               </div>
-            )}
-            {!onFocusUser && connections.length > 0 && (
-              <p style={{ fontSize: 11, color: '#5c5348', marginTop: 6, marginBottom: 0 }}>
-                Host hasn&rsquo;t wired onFocusUser — list is read-only.
-              </p>
             )}
           </div>
         )}

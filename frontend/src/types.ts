@@ -129,18 +129,21 @@ export interface RelationshipMapProps {
   onConnectionAdd?: (conn: unknown) => void
   onRatingSubmit?: (rating: unknown) => void
   // Fired when the user clicks a connection inside the detail panel's "their connections"
-  // list, requesting the graph re-center on that person. RelationshipMap does not change
-  // `currentUserId` itself — it's a host-owned prop — so the host must handle this by updating
-  // whatever value it passes as `currentUserId`. Without this callback wired, the list still
-  // renders but rows aren't clickable.
+  // list (or an earlier breadcrumb in the TopBar), requesting the graph re-center on that
+  // person. Second argument is that person's display name, since RelationshipMap has no
+  // reliable way to resolve it again once they've fallen out of graphData.users -- the host
+  // needs it to build `focusPath` below. RelationshipMap does not change `currentUserId`
+  // itself -- it's a host-owned prop -- so the host must handle this by updating whatever
+  // value it passes as `currentUserId`. Without this callback wired, the list still renders
+  // but rows aren't clickable.
   //
-  // Controlled (`data`) mode only for now: the list is built from the `data.connections` the
-  // host already supplies in full, so no new data exposure. In `apiUrl` mode there's currently
-  // no backend call for "this other user's owned connections" — deliberately not wired here,
-  // since fetching an arbitrary user's connection list raises an access-control question
-  // (should the current viewer be able to see anyone's connections just by selecting them?)
-  // that belongs in pooledTools' route/auth wiring, not this library.
-  onFocusUser?: (userId: string) => void
+  // apiUrl mode: re-centering onto someone other than the authenticated viewer is an
+  // access-control decision (should the viewer be able to walk beyond their own N-hop
+  // network?) -- that's the host's route/auth call, not this library's. pooledTools resolves
+  // it by only authorizing re-center onto a user already reachable within the viewer's own
+  // maxHops network (see backend/relmap/routes/graph.py), so focusing never exposes anyone
+  // the viewer couldn't already see an edge to.
+  onFocusUser?: (userId: string, displayName: string) => void
   // Breadcrumb trail from wherever browsing started to the current currentUserId, oldest
   // first, rendered in the TopBar when there's more than one entry. Host-owned and
   // host-resolved (names, not just ids) for the same reason onFocusUser is host-owned:

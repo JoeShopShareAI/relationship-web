@@ -9,7 +9,7 @@ interface Props {
   visibleRatingDimensions: string[]
   onToggleDimension: (key: string) => void
   focusPath?: Array<{ id: string; name: string }>
-  onFocusUser?: (userId: string) => void
+  onFocusUser?: (userId: string, displayName: string) => void
   pickerLabel?: string
 }
 
@@ -103,7 +103,7 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
                   <span style={{ fontSize: 12.5, color: '#f0ebe4', fontWeight: 600, whiteSpace: 'nowrap' }}>{p.name}</span>
                 ) : (
                   <button
-                    onClick={() => onFocusUser?.(p.id)}
+                    onClick={() => onFocusUser?.(p.id, p.name)}
                     style={{
                       all: 'unset', cursor: 'pointer', fontSize: 12.5, color: '#8a7f70',
                       fontWeight: 500, whiteSpace: 'nowrap',
