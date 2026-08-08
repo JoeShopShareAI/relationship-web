@@ -182,4 +182,12 @@ export interface RelationshipMapProps {
   // when such a connection exists) -- matches this package's existing selectedEdge gating.
   onToggleConnectionType?: (targetUserId: string, typeKey: string, add: boolean) => Promise<void>
   height?: string
+  // Default 'graph': the existing three-pane layout (list + canvas + detail side by side), with
+  // the Force/Radial toggle in TopBar. 'list' drops the canvas (and the now-irrelevant
+  // Force/Radial toggle) entirely and turns LeftSidebar/RightPanel into a full-width
+  // master-detail swap instead of two fixed-width panes squeezed next to a canvas — added for a
+  // host embedding this at phone width (pooledTools' mobile-web Connections screen), where
+  // RightPanel's fixed 260px alone leaves the canvas too little room to be usable, let alone
+  // legible. Existing hosts see no change; this is opt-in.
+  layout?: 'graph' | 'list'
 }

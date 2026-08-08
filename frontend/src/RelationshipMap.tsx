@@ -166,6 +166,7 @@ export function RelationshipMap(props: RelationshipMapProps) {
     onModeChange,
     onToggleConnectionType,
     height = '600px',
+    layout = 'graph',
   } = props
 
   const isControlled = controlledInput != null
@@ -235,13 +236,22 @@ export function RelationshipMap(props: RelationshipMapProps) {
 
   const handleNodeClick = useCallback(
     (nodeId: string) => {
-      setSelectedNodeId(prev => (prev === nodeId ? null : nodeId))
+      // In list layout, a host supplying onNodeClick owns detail display itself (pooledTools: a
+      // richer Drawer with tools/loans/would-lend info) -- swapping to this component's own
+      // RightPanel too would be a second, conflicting full-width detail view fighting the host's
+      // for the same mobile-width screen (the host's Drawer mask ends up blocking clicks on
+      // RightPanel's Back button underneath it). Graph layout is unchanged: both always fire,
+      // since RightPanel has its own room alongside the canvas regardless of what a host does
+      // with onNodeClick.
+      if (!(layout === 'list' && onNodeClick)) {
+        setSelectedNodeId(prev => (prev === nodeId ? null : nodeId))
+      }
       if (graphData && onNodeClick) {
         const user = graphData.users.find(u => u.id === nodeId)
         if (user) onNodeClick(user)
       }
     },
-    [graphData, onNodeClick],
+    [graphData, onNodeClick, layout],
   )
 
   const handleNodeDragStop = useCallback(
@@ -420,61 +430,98 @@ export function RelationshipMap(props: RelationshipMapProps) {
         focusPath={focusPath}
         onFocusUser={onFocusUser}
         pickerLabel={pickerLabel}
+        showViewToggle={layout !== 'list'}
       />
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
-        <LeftSidebar
-          users={graphData.users}
-          edges={graphData.edges}
-          currentUserId={currentUserId}
-          selectedNodeId={selectedNodeId}
-          relationshipTypes={graphData.relationship_types}
-          onSelectNode={handleNodeClick}
-          onAddPerson={() => setAddingConnection(true)}
-          showSearch={showSearch}
-          showAddPerson={showAddPerson}
-        />
-
-        {view === 'force' ? (
-          <ReactFlowProvider>
-            <GraphCanvas
-              graphData={canvasGraphData}
+        {layout === 'list' ? (
+          // Master-detail swap, no canvas -- see the layout prop's doc comment in types.ts for
+          // why (RightPanel's fixed 260px alone leaves a canvas too little room at phone width).
+          selectedUser ? (
+            <RightPanel
+              user={selectedUser}
+              currentUserId={currentUserId}
+              edge={selectedEdge}
+              ratings={graphData.ratings}
+              ratingDimensions={ratingDimensions}
+              onRate={handleRate}
+              onClose={() => setSelectedNodeId(null)}
+              connections={selectedUserConnections}
+              onFocusUser={onFocusUser}
+              allRelationshipTypes={graphData.relationship_types}
+              onToggleConnectionType={onToggleConnectionType ? handleToggleConnectionType : undefined}
+              layout="list"
+            />
+          ) : (
+            <LeftSidebar
+              users={graphData.users}
+              edges={graphData.edges}
               currentUserId={currentUserId}
               selectedNodeId={selectedNodeId}
-              ratingDimensions={ratingDimensions}
-              visibleRatingDimensions={visibleDimensions}
-              pickerMode={mode === 'picker' && !renderPickerOverlay}
-              pickerEligibleIds={pickerEligibleIds}
-              onNodeClick={handleNodeClick}
-              onNodeDragStop={handleNodeDragStop}
-              height="100%"
+              relationshipTypes={graphData.relationship_types}
+              onSelectNode={handleNodeClick}
+              onAddPerson={() => setAddingConnection(true)}
+              showSearch={showSearch}
+              showAddPerson={showAddPerson}
+              layout="list"
             />
-          </ReactFlowProvider>
+          )
         ) : (
-          <RadialCanvas
-            graphData={canvasGraphData}
-            currentUserId={currentUserId}
-            selectedNodeId={selectedNodeId}
-            pickerMode={mode === 'picker' && !renderPickerOverlay}
-            pickerEligibleIds={pickerEligibleIds}
-            onNodeClick={handleNodeClick}
-            height="100%"
-          />
-        )}
+          <>
+            <LeftSidebar
+              users={graphData.users}
+              edges={graphData.edges}
+              currentUserId={currentUserId}
+              selectedNodeId={selectedNodeId}
+              relationshipTypes={graphData.relationship_types}
+              onSelectNode={handleNodeClick}
+              onAddPerson={() => setAddingConnection(true)}
+              showSearch={showSearch}
+              showAddPerson={showAddPerson}
+            />
 
-        <RightPanel
-          user={selectedUser}
-          currentUserId={currentUserId}
-          edge={selectedEdge}
-          ratings={graphData.ratings}
-          ratingDimensions={ratingDimensions}
-          onRate={handleRate}
-          onClose={() => setSelectedNodeId(null)}
-          connections={selectedUserConnections}
-          onFocusUser={onFocusUser}
-          allRelationshipTypes={graphData.relationship_types}
-          onToggleConnectionType={onToggleConnectionType ? handleToggleConnectionType : undefined}
-        />
+            {view === 'force' ? (
+              <ReactFlowProvider>
+                <GraphCanvas
+                  graphData={canvasGraphData}
+                  currentUserId={currentUserId}
+                  selectedNodeId={selectedNodeId}
+                  ratingDimensions={ratingDimensions}
+                  visibleRatingDimensions={visibleDimensions}
+                  pickerMode={mode === 'picker' && !renderPickerOverlay}
+                  pickerEligibleIds={pickerEligibleIds}
+                  onNodeClick={handleNodeClick}
+                  onNodeDragStop={handleNodeDragStop}
+                  height="100%"
+                />
+              </ReactFlowProvider>
+            ) : (
+              <RadialCanvas
+                graphData={canvasGraphData}
+                currentUserId={currentUserId}
+                selectedNodeId={selectedNodeId}
+                pickerMode={mode === 'picker' && !renderPickerOverlay}
+                pickerEligibleIds={pickerEligibleIds}
+                onNodeClick={handleNodeClick}
+                height="100%"
+              />
+            )}
+
+            <RightPanel
+              user={selectedUser}
+              currentUserId={currentUserId}
+              edge={selectedEdge}
+              ratings={graphData.ratings}
+              ratingDimensions={ratingDimensions}
+              onRate={handleRate}
+              onClose={() => setSelectedNodeId(null)}
+              connections={selectedUserConnections}
+              onFocusUser={onFocusUser}
+              allRelationshipTypes={graphData.relationship_types}
+              onToggleConnectionType={onToggleConnectionType ? handleToggleConnectionType : undefined}
+            />
+          </>
+        )}
 
         {addingConnection && graphData && (
           <AddConnectionOverlay

@@ -15,6 +15,10 @@ interface Props {
   onAddPerson: (query: string) => void
   showSearch: boolean
   showAddPerson?: boolean
+  // Default 'graph': fixed 220px alongside the canvas. 'list' (RelationshipMap's layout='list',
+  // no canvas) goes full-width instead — this pane IS the screen in that mode, not a fixed-width
+  // rail next to one.
+  layout?: 'graph' | 'list'
 }
 
 export function LeftSidebar({
@@ -27,6 +31,7 @@ export function LeftSidebar({
   onAddPerson,
   showSearch,
   showAddPerson = true,
+  layout = 'graph',
 }: Props) {
   const [search, setSearch] = useState('')
   const [showLegend, setShowLegend] = useState(false)
@@ -43,8 +48,8 @@ export function LeftSidebar({
 
   return (
     <div style={{
-      width: 220,
-      borderRight: '1px solid #2a251e',
+      width: layout === 'list' ? '100%' : 220,
+      borderRight: layout === 'list' ? 'none' : '1px solid #2a251e',
       background: '#1c1814',
       display: 'flex',
       flexDirection: 'column',

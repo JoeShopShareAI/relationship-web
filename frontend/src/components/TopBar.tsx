@@ -11,9 +11,12 @@ interface Props {
   focusPath?: Array<{ id: string; name: string }>
   onFocusUser?: (userId: string, displayName: string) => void
   pickerLabel?: string
+  // Default true. False when RelationshipMap's layout='list' — the Force/Radial toggle has
+  // nothing to control once no canvas is rendered.
+  showViewToggle?: boolean
 }
 
-export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimensions, visibleRatingDimensions, onToggleDimension, focusPath, onFocusUser, pickerLabel = 'Picker' }: Props) {
+export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimensions, visibleRatingDimensions, onToggleDimension, focusPath, onFocusUser, pickerLabel = 'Picker', showViewToggle = true }: Props) {
   const modeLabels: Record<'explorer' | 'picker', string> = { explorer: 'Explorer', picker: pickerLabel }
   return (
     <div style={{
@@ -48,28 +51,30 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
       </div>
 
       {/* View toggle */}
-      <div style={{ display: 'flex', borderRadius: 6, border: '1px solid #2a251e', overflow: 'hidden' }}>
-        {([
-          { key: 'force' as const, label: 'Force' },
-          { key: 'radial' as const, label: 'Radial' },
-        ]).map(v => (
-          <button
-            key={v.key}
-            onClick={() => onViewChange(v.key)}
-            style={{
-              padding: '4px 14px',
-              fontSize: 13,
-              fontWeight: 500,
-              border: 'none',
-              cursor: 'pointer',
-              background: view === v.key ? '#ee5524' : '#1c1814',
-              color: view === v.key ? '#fff' : '#8a7f70',
-            }}
-          >
-            {v.label}
-          </button>
-        ))}
-      </div>
+      {showViewToggle && (
+        <div style={{ display: 'flex', borderRadius: 6, border: '1px solid #2a251e', overflow: 'hidden' }}>
+          {([
+            { key: 'force' as const, label: 'Force' },
+            { key: 'radial' as const, label: 'Radial' },
+          ]).map(v => (
+            <button
+              key={v.key}
+              onClick={() => onViewChange(v.key)}
+              style={{
+                padding: '4px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer',
+                background: view === v.key ? '#ee5524' : '#1c1814',
+                color: view === v.key ? '#fff' : '#8a7f70',
+              }}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Rating dimension toggles */}
       {ratingDimensions.map(dim => (

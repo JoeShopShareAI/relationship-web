@@ -25,6 +25,11 @@ interface Props {
   // read-only. Only ever called while `edge` is non-null (a connection owned by currentUserId
   // to the selected person) — see the doc comment on RelationshipMapProps.
   onToggleConnectionType?: (targetUserId: string, typeKey: string, add: boolean) => Promise<void>
+  // Default 'graph': fixed 260px alongside the canvas, small × to close. 'list' (RelationshipMap's
+  // layout='list') goes full-width and swaps the × for a larger "← Back" control, since onClose
+  // now means "return to the list" (a real navigation, not dismissing a side panel) and deserves
+  // a bigger touch target at phone width.
+  layout?: 'graph' | 'list'
 }
 
 function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -51,7 +56,7 @@ function StarInput({ value, onChange }: { value: number; onChange: (v: number) =
   )
 }
 
-export function RightPanel({ user, currentUserId, edge, ratings, ratingDimensions, onRate, onClose, connections, onFocusUser, allRelationshipTypes, onToggleConnectionType }: Props) {
+export function RightPanel({ user, currentUserId, edge, ratings, ratingDimensions, onRate, onClose, connections, onFocusUser, allRelationshipTypes, onToggleConnectionType, layout = 'graph' }: Props) {
   const [ratingValues, setRatingValues] = useState<Record<string, number>>({})
   const [submitting, setSubmitting] = useState<Record<string, boolean>>({})
   const [togglingTypes, setTogglingTypes] = useState<Record<string, boolean>>({})
@@ -67,7 +72,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
 
   if (!user) {
     return (
-      <div style={{ width: 260, borderLeft: '1px solid #2a251e', background: '#1c1814', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{ width: layout === 'list' ? '100%' : 260, borderLeft: layout === 'list' ? 'none' : '1px solid #2a251e', background: '#1c1814', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         <span style={{ fontSize: 13, color: '#8a7f70' }}>Select a person</span>
       </div>
     )
@@ -107,8 +112,8 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
 
   return (
     <div style={{
-      width: 260,
-      borderLeft: '1px solid #2a251e',
+      width: layout === 'list' ? '100%' : 260,
+      borderLeft: layout === 'list' ? 'none' : '1px solid #2a251e',
       background: '#1c1814',
       display: 'flex',
       flexDirection: 'column',
@@ -117,8 +122,19 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
     }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '1px solid #2a251e' }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#c0b8ae' }}>Detail</span>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#8a7f70' }}>×</button>
+        {layout === 'list' ? (
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', fontSize: 14, fontWeight: 600, color: '#c0b8ae' }}
+          >
+            <span style={{ fontSize: 18 }}>←</span> Back
+          </button>
+        ) : (
+          <>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#c0b8ae' }}>Detail</span>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#8a7f70' }}>×</button>
+          </>
+        )}
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 14 }}>
