@@ -82,8 +82,15 @@ export function RadialCanvas({ graphData, currentUserId, selectedNodeId, pickerM
   const links = root.links()
 
   return (
-    <div style={{ flex: 1, height, overflow: 'auto', background: '#18150f' }}>
-      <svg width={size} height={size}>
+    // `size` is a fixed logical diagram extent (RADIUS+PAD radial layout math), not tied to
+    // this container's actual rendered size -- a host embedding this at less than size x size
+    // (e.g. pooledTools's Connections panel, a wide-but-short ~920x415 box) used to clip
+    // roughly half the diagram below the fold behind this div's own `overflow: auto`, with no
+    // scrollbar affordance a real user would think to use. Fixed by letting the SVG's viewBox
+    // scale the whole fixed-size diagram down (or up) to fit whatever box it's actually given,
+    // instead of rendering at a literal size x size pixel size and relying on scrolling.
+    <div style={{ flex: 1, height, overflow: 'hidden', background: '#18150f' }}>
+      <svg viewBox={`0 0 ${size} ${size}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: 'block' }}>
         {links.map((l, i) => {
           const s = polar(l.source.x, l.source.y, center)
           const t = polar(l.target.x, l.target.y, center)

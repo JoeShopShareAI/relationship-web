@@ -10,7 +10,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { RelationshipNode, type RelationshipNodeData } from './RelationshipNode'
+import { RelationshipNode, nodeDiameter, type RelationshipNodeData } from './RelationshipNode'
 import { RelationshipEdge, type RelationshipEdgeData } from './RelationshipEdge'
 import { useForceLayout } from '../hooks/useForceLayout'
 import type { GraphData, RatingDimension } from '../types'
@@ -45,17 +45,34 @@ function toRFNodes(
 ): Node[] {
   return graphData.users.map(user => {
     const pos = positions.get(user.id) ?? { x: user.pos_x ?? 0, y: user.pos_y ?? 0 }
+    const isFocal = user.id === currentUserId
     const data: RelationshipNodeData = {
       user,
       ratings: graphData.ratings,
       ratingDimensions,
       visibleRatingDimensions,
       isSelected: selectedNodeId === user.id,
-      isFocal: user.id === currentUserId,
+      isFocal,
       dimmed: pickerMode && !pickerEligibleIds.has(user.id) && user.id !== currentUserId,
       eligible: pickerEligibleIds.has(user.id),
       pickerMode,
     }
+    // initialWidth/initialHeight (approximate -- RelationshipNode's real rendered size varies
+    // a little with name length and whether the tool-count badge shows) make @xyflow/react
+    // treat this node as measured from the very first render, instead of waiting on its own
+    // ResizeObserver-driven async measurement. That async path is what was actually broken:
+    // handleTick below replaces the whole `nodes` array with fresh object references on every
+    // d3-force tick (the standard, correct way to animate a controlled layout), and that
+    // continuous churn meant the internal "measured" bookkeeping this library keeps per node
+    // never got a stable frame to persist across -- so real accounts never got past
+    // `visibility: hidden` at all, confirmed live (a fresh account, any viewport width, even a
+    // 10s+ wait). initialWidth/initialHeight are only a fallback hint used before real
+    // measurement lands (see getNodeInlineStyleDimensions in @xyflow/react) -- once/if it does,
+    // the node's actual CSS reverts to sizing from its own content, so a slightly-off estimate
+    // here only affects the brief instant before that, not the node's real rendered size.
+    const diameter = nodeDiameter(user, isFocal)
+    const initialWidth = Math.max(diameter, 90)
+    const initialHeight = diameter + 50 + (!isFocal && user.eligible_tool_count !== undefined ? 24 : 0)
     return {
       id: user.id,
       type: 'relationship',
@@ -63,6 +80,8 @@ function toRFNodes(
       data,
       draggable: true,
       zIndex: user.id === currentUserId ? 10 : 1,
+      initialWidth,
+      initialHeight,
     }
   })
 }
@@ -101,7 +120,26 @@ export function GraphCanvas({
     if (!el) return
     const ro = new ResizeObserver(entries => {
       for (const entry of entries) {
-        setDimensions({ width: entry.contentRect.width, height: entry.contentRect.height })
+        const { width, height } = entry.contentRect
+        // Bail out (same object reference, no re-render) on a sub-pixel-identical
+        // measurement -- without this guard, any floating-point jitter in
+        // contentRect between successive callbacks feeds straight into
+        // useForceLayout's [width, height] dependency array below, which tears
+        // down and restarts the whole d3-force simulation from alpha=1 every
+        // time. That restart loop never lets the simulation settle, which in
+        // turn means useNodesState's controlled `nodes` prop never stops
+        // getting replaced on every tick -- and @xyflow/react's own internal
+        // node-dimension bookkeeping (which needs a render where its measured
+        // size actually sticks) never gets the chance to persist, so every
+        // node stays permanently stuck at its own internal `visibility:
+        // hidden` "not yet measured" state. Confirmed live: 1000+ ResizeObserver
+        // callbacks fired in an 8-second window against a perfectly static
+        // container before this fix.
+        setDimensions(prev =>
+          Math.abs(prev.width - width) < 0.5 && Math.abs(prev.height - height) < 0.5
+            ? prev
+            : { width, height },
+        )
       }
     })
     ro.observe(el)
