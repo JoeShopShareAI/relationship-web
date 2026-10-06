@@ -10,6 +10,7 @@ import {
   type Edge,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import './GraphCanvas.css'
 import { RelationshipNode, nodeDiameter, type RelationshipNodeData } from './RelationshipNode'
 import { RelationshipEdge, type RelationshipEdgeData } from './RelationshipEdge'
 import { useForceLayout } from '../hooks/useForceLayout'
@@ -256,6 +257,17 @@ export function GraphCanvas({
         onNodeDragStart={handleNodeDragStart}
         onNodeDrag={handleNodeDrag}
         onNodeDragStop={handleNodeDragStop}
+        // React Flow's own default keyboard interaction (select an edge with
+        // Enter/Space, remove it with Delete/Backspace) was still active here even
+        // though nothing wires edge deletion to a real API call (no onEdgesDelete,
+        // no deleteConnection() call anywhere in this component) -- Delete just
+        // silently desynced React Flow's internal view from `edges` until the next
+        // graphData refresh snapped it back, reading as "I deleted someone's
+        // connection" with no confirmation and no actual effect
+        // (docs/backlog.md "deleting an edge via keyboard has no confirmation").
+        // Disabled outright rather than adding a confirm dialog for an interaction
+        // this app doesn't actually support yet.
+        deleteKeyCode={null}
         minZoom={0.2}
         maxZoom={2}
         style={{ background: '#18150f' }}
@@ -266,7 +278,7 @@ export function GraphCanvas({
         proOptions={{ hideAttribution: true }}
       >
         <Background gap={28} color="#2a251e" variant={'dots' as any} />
-        <Controls style={{ button: { background: '#2e2920', border: '1px solid #3a342c', color: '#c0b8ae' } } as any} />
+        <Controls />
       </ReactFlow>
     </div>
   )

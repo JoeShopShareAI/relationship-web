@@ -35,20 +35,34 @@ interface Props {
 function StarInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0)
   return (
-    <div style={{ display: 'flex', gap: 3 }}>
+    <div style={{ display: 'flex', gap: 2 }}>
       {[1, 2, 3, 4, 5].map(s => (
         <button
           key={s}
           onMouseEnter={() => setHover(s)}
           onMouseLeave={() => setHover(0)}
           onClick={() => onChange(s)}
+          aria-label={`Rate ${s} star${s === 1 ? '' : 's'}`}
           style={{
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             fontSize: 20,
-            color: s <= (hover || value) ? '#f59e0b' : '#3a342c',
-            padding: 0,
+            lineHeight: 1,
+            color: s <= (hover || value) ? '#f59e0b' : '#5c5348',
+            // docs/backlog.md "zoom and star controls are small, low-contrast touch
+            // targets" -- was padding: 0 (just the glyph's own ~14px box) and
+            // #3a342c unselected (barely visible against the panel background). Not
+            // the full 44px recommended minimum -- this sits in RightPanel's fixed
+            // 260px column (232px usable after its 14px padding), and 5 full-44px
+            // buttons would be wider than that -- but a large, deliberate step up
+            // from the original near-zero target.
+            padding: 10,
+            minWidth: 40,
+            minHeight: 40,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >★</button>
       ))}

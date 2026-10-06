@@ -1,0 +1,23 @@
+/* React Flow's <Controls style={{ button: {...} }}> prop does nothing -- `style`
+   only ever applies to the outer Panel container, not individual buttons (see
+   Controls.d.ts: it destructures `style` straight onto the container div, with no
+   `button` sub-key in ControlProps at all). The zoom buttons were rendering at
+   React Flow's unstyled default the whole time: small (~26px) and low-contrast
+   against this app's dark theme (docs/backlog.md "zoom and star controls are
+   small, low-contrast touch targets"). Real CSS override instead. */
+.react-flow__controls-button {
+  width: 32px;
+  height: 32px;
+  background: #2e2920;
+  border: 1px solid #3a342c;
+}
+
+.react-flow__controls-button svg {
+  fill: #c0b8ae;
+  max-width: 16px;
+  max-height: 16px;
+}
+
+.react-flow__controls-button:hover {
+  background: #3a342c;
+}

@@ -50,8 +50,11 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
         ))}
       </div>
 
-      {/* View toggle */}
-      {showViewToggle && (
+      {/* View toggle -- also hidden in picker mode: a picker overlay (e.g. pooledTools'
+          pending-requests list) covers the canvas, so Force/Radial has nothing visible
+          to switch between (docs/backlog.md "Explorer toolbars stay visible and
+          non-functional on the Requests tab"). */}
+      {showViewToggle && mode !== 'picker' && (
         <div style={{ display: 'flex', borderRadius: 6, border: '1px solid #2a251e', overflow: 'hidden' }}>
           {([
             { key: 'force' as const, label: 'Force' },
@@ -76,8 +79,10 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
         </div>
       )}
 
-      {/* Rating dimension toggles */}
-      {ratingDimensions.map(dim => (
+      {/* Rating dimension toggles -- also hidden in picker mode, same reasoning as the
+          view toggle above: nothing visible on screen for these to affect once a picker
+          overlay covers the canvas. */}
+      {mode !== 'picker' && ratingDimensions.map(dim => (
         <button
           key={dim.key}
           onClick={() => onToggleDimension(dim.key)}

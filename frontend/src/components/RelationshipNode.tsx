@@ -86,21 +86,29 @@ function NodeContent({ data }: { data: RelationshipNodeData }) {
         }}>✓</div>
       )}
 
-      {/* Name */}
-      <div style={{
-        fontSize: 11,
-        fontWeight: isFocal ? 700 : 500,
-        color: isFocal ? '#f0ebe4' : '#c0b8ae',
-        textAlign: 'center',
-        maxWidth: 90,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        background: 'rgba(24,21,15,0.88)',
-        borderRadius: 4,
-        padding: '2px 6px',
-        border: '1px solid #2e2920',
-      }}>
+      {/* Name. Still truncates at this width -- two names this close together on a
+          force/radial canvas can't both get arbitrarily wide labels without risking
+          overlap with neighboring nodes -- but a truncated label used to give no way
+          to tell who it actually was ("MM Test Le..." / "MM Test Bor..." read as the
+          same person). The native title attribute surfaces the full name on hover,
+          same zero-layout-cost pattern as any truncated label anywhere else. */}
+      <div
+        title={user.display_name}
+        style={{
+          fontSize: 11,
+          fontWeight: isFocal ? 700 : 500,
+          color: isFocal ? '#f0ebe4' : '#c0b8ae',
+          textAlign: 'center',
+          maxWidth: 90,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          background: 'rgba(24,21,15,0.88)',
+          borderRadius: 4,
+          padding: '2px 6px',
+          border: '1px solid #2e2920',
+        }}
+      >
         {user.display_name}
       </div>
 
