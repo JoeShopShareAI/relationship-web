@@ -1,5 +1,16 @@
 import type { GraphData, PickerResponse, NodePositionItem, User, Rating } from './types'
 
+// Carries the HTTP status so callers can tell "this doesn't exist (yet)" (404)
+// apart from a real failure, instead of string-matching the message.
+export class ApiError extends Error {
+  status: number
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 async function apiFetch<T>(url: string, token?: string, init?: RequestInit): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (token) headers['Authorization'] = `Bearer ${token}`
@@ -9,7 +20,7 @@ async function apiFetch<T>(url: string, token?: string, init?: RequestInit): Pro
   })
   if (!res.ok) {
     const text = await res.text().catch(() => '')
-    throw new Error(`${res.status} ${res.statusText}: ${text}`)
+    throw new ApiError(res.status, `${res.status} ${res.statusText}: ${text}`)
   }
   if (res.status === 204) return undefined as T
   return res.json() as Promise<T>

@@ -183,7 +183,7 @@ export function RelationshipMap(props: RelationshipMapProps) {
   const [addingConnection, setAddingConnection] = useState(false)
 
   // API-backed data path
-  const { data: fetchedData, loading, error, refresh, setData: setFetchedData } = useGraphData(
+  const { data: fetchedData, loading, error, errorStatus, refresh, setData: setFetchedData } = useGraphData(
     isControlled ? undefined : apiUrl,
     currentUserId,
     authToken,
@@ -380,11 +380,24 @@ export function RelationshipMap(props: RelationshipMapProps) {
   }
 
   if (error) {
+    // A 404 for the viewer's own map means their node doesn't exist yet (hosts may create
+    // it lazily) -- a calm setup state, not an error. Anything else is a real failure, but
+    // still in plain words; the raw server text stays out of the user's face (title attr).
+    const notSetUp = errorStatus === 404
     return (
-      <div style={{ height, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fef2f2', gap: 8 }}>
-        <span style={{ fontSize: 14, color: '#dc2626', fontWeight: 600 }}>Failed to load</span>
-        <span style={{ fontSize: 12, color: '#6b7280' }}>{error}</span>
-        <button onClick={refresh} style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #d1d5db', cursor: 'pointer', fontSize: 13 }}>Retry</button>
+      <div
+        role={notSetUp ? 'status' : 'alert'}
+        style={{ height, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9fafb', gap: 8, padding: 16, textAlign: 'center' }}
+      >
+        <span style={{ fontSize: 15, color: '#1f2937', fontWeight: 600 }}>
+          {notSetUp ? "Your network map isn't set up yet" : "Couldn't load your network"}
+        </span>
+        <span style={{ fontSize: 13, color: '#4b5563', maxWidth: 360 }} title={error}>
+          {notSetUp
+            ? 'It is created automatically the first time you open it. Try again in a moment.'
+            : 'Check your connection and try again.'}
+        </span>
+        <button onClick={refresh} style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid #9ca3af', background: '#fff', color: '#1f2937', cursor: 'pointer', fontSize: 13 }}>Try again</button>
       </div>
     )
   }
