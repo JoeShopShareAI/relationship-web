@@ -71,7 +71,7 @@ export function RadialCanvas({ graphData, currentUserId, selectedNodeId, pickerM
   if (!fullTree || !root) {
     return (
       <div style={{ flex: 1, height, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#18150f' }}>
-        <span style={{ fontSize: 13, color: '#8a7f70' }}>No graph data for this user</span>
+        <span style={{ fontSize: 13, color: '#a09484' }}>No graph data for this user</span>
       </div>
     )
   }
@@ -103,7 +103,7 @@ export function RadialCanvas({ graphData, currentUserId, selectedNodeId, pickerM
           const isSelected = n.data.id === selectedNodeId
           const isCollapsed = collapsed.has(n.data.id)
           const hasChildren = n.data.children.length > 0
-          const primaryColor = n.data.edgeTypes[0]?.color_hex || '#8a7f70'
+          const primaryColor = n.data.edgeTypes[0]?.color_hex || '#a09484'
           const dimmed = pickerMode && !pickerEligibleIds.has(n.data.id) && !isFocalNode
           const r = nodeDiameter(n.data.user, isFocalNode) / 2 / 3 // radial nodes are compact dots, not full avatars -- scale down from the force graph's avatar-sized diameter while still reflecting degree
           const etc = n.data.user.eligible_tool_count
@@ -135,7 +135,7 @@ export function RadialCanvas({ graphData, currentUserId, selectedNodeId, pickerM
                   dy="0.32em"
                   textAnchor={onRight ? 'start' : 'end'}
                   onClick={() => onNodeClick(n.data.id)}
-                  style={{ cursor: 'pointer', fontSize: 10, fontWeight: 500, fill: '#8a7f70' }}
+                  style={{ cursor: 'pointer', fontSize: 10, fontWeight: 500, fill: '#a09484' }}
                 >
                   {(() => { const t = etc ?? 0; return `${t} tool${t === 1 ? '' : 's'}` })()}
                 </text>

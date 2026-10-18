@@ -87,7 +87,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
   if (!user) {
     return (
       <div style={{ width: layout === 'list' ? '100%' : 260, borderLeft: layout === 'list' ? 'none' : '1px solid #2a251e', background: '#1c1814', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: 13, color: '#8a7f70' }}>Select a person</span>
+        <span style={{ fontSize: 13, color: '#a09484' }}>Select a person</span>
       </div>
     )
   }
@@ -146,7 +146,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
         ) : (
           <>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#c0b8ae' }}>Detail</span>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#8a7f70' }}>×</button>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#a09484' }}>×</button>
           </>
         )}
       </div>
@@ -164,7 +164,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
             justifyContent: 'center',
             fontSize: 18,
             fontWeight: 600,
-            color: '#8a7f70',
+            color: '#a09484',
             overflow: 'hidden',
             flexShrink: 0,
           }}>
@@ -175,9 +175,9 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
           </div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#f0ebe4' }}>{user.display_name}</div>
-            <div style={{ fontSize: 11, color: '#8a7f70', marginTop: 1 }}>{user.connection_count} connection{user.connection_count !== 1 ? 's' : ''}</div>
+            <div style={{ fontSize: 11, color: '#a09484', marginTop: 1 }}>{user.connection_count} connection{user.connection_count !== 1 ? 's' : ''}</div>
             {user.eligible_tool_count !== undefined && user.id !== currentUserId && (
-              <div style={{ fontSize: 11, color: '#8a7f70', marginTop: 2 }}>
+              <div style={{ fontSize: 11, color: '#a09484', marginTop: 2 }}>
                 {(() => {
                   const n = user.eligible_tool_count ?? 0
                   return `${n} tool${n === 1 ? '' : 's'} you could borrow`
@@ -193,7 +193,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
             the first one; read-only mode keeps hiding when there's nothing to show. */}
         {edge && onToggleConnectionType && allRelationshipTypes ? (
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#8a7f70', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Relationship</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#a09484', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Relationship</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {allRelationshipTypes.map(t => {
                 const active = edge.types.some(et => et.key === t.key)
@@ -207,7 +207,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
                       padding: '2px 8px',
                       borderRadius: 12,
                       background: active ? t.color_hex + '22' : 'transparent',
-                      color: active ? t.color_hex : '#8a7f70',
+                      color: active ? t.color_hex : '#a09484',
                       border: `1px solid ${active ? t.color_hex + '66' : '#3a342c'}`,
                       fontSize: 11,
                       fontWeight: 600,
@@ -223,7 +223,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
           </div>
         ) : edge && edge.types.length > 0 && (
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#8a7f70', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Relationship</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#a09484', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Relationship</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {edge.types.map(t => (
                 <span key={t.key} style={{
@@ -245,7 +245,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
         {/* Ratings */}
         {ratingDimensions.length > 0 && (
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#8a7f70', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ratings</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#a09484', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ratings</div>
             {ratingDimensions.map(dim => {
               const avg = avgByDim(dim.key)
               const myScore = myRatingMap.get(dim.key)
@@ -253,7 +253,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
                 <div key={dim.key} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                     <span style={{ fontSize: 12, color: '#c0b8ae', fontWeight: 500 }}>{dim.label}</span>
-                    <span style={{ fontSize: 12, color: '#8a7f70' }}>
+                    <span style={{ fontSize: 12, color: '#a09484' }}>
                       {avg != null ? `avg ${avg.toFixed(1)}` : '—'}
                       {myScore != null ? ` · you: ${myScore.toFixed(1)}` : ''}
                     </span>
@@ -274,7 +274,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
                             borderRadius: 4,
                             border: '1px solid #ee5524',
                             background: '#ee5524',
-                            color: '#fff',
+                            color: '#1c1814',
                             cursor: 'pointer',
                           }}
                         >
@@ -292,7 +292,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
         {/* Notes */}
         {user.notes && (
           <div style={{ marginBottom: connections ? 14 : 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#8a7f70', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#a09484', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Notes</div>
             <p style={{ fontSize: 13, color: '#c0b8ae', margin: 0, whiteSpace: 'pre-wrap' }}>{user.notes}</p>
           </div>
         )}
@@ -300,7 +300,7 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
         {/* Their connections — null means unavailable for this data mode, not "none" */}
         {connections && (
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: '#8a7f70', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#a09484', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               {user.display_name}&rsquo;s connections
             </div>
             {connections.length === 0 ? (
@@ -331,14 +331,14 @@ export function RightPanel({ user, currentUserId, edge, ratings, ratingDimension
                       <span
                         style={{
                           width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                          background: primary?.color_hex ?? '#8a7f70',
+                          background: primary?.color_hex ?? '#a09484',
                         }}
                       />
                       <span style={{ fontSize: 13, color: '#f0ebe4', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {c.name}
                       </span>
                       {primary && (
-                        <span style={{ marginLeft: 'auto', fontSize: 10.5, color: '#8a7f70', flexShrink: 0 }}>{primary.name}</span>
+                        <span style={{ marginLeft: 'auto', fontSize: 10.5, color: '#a09484', flexShrink: 0 }}>{primary.name}</span>
                       )}
                     </Row>
                   )

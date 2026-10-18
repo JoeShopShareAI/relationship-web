@@ -41,7 +41,7 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
               border: 'none',
               cursor: 'pointer',
               background: mode === m ? '#ee5524' : '#1c1814',
-              color: mode === m ? '#fff' : '#8a7f70',
+              color: mode === m ? '#1c1814' : '#a09484',
               whiteSpace: 'nowrap',
             }}
           >
@@ -70,7 +70,7 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
                 border: 'none',
                 cursor: 'pointer',
                 background: view === v.key ? '#ee5524' : '#1c1814',
-                color: view === v.key ? '#fff' : '#8a7f70',
+                color: view === v.key ? '#1c1814' : '#a09484',
               }}
             >
               {v.label}
@@ -93,7 +93,7 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
             border: '1px solid #2a251e',
             cursor: 'pointer',
             background: visibleRatingDimensions.includes(dim.key) ? 'rgba(238,85,36,0.15)' : '#2e2920',
-            color: visibleRatingDimensions.includes(dim.key) ? '#ee5524' : '#8a7f70',
+            color: visibleRatingDimensions.includes(dim.key) ? '#f47a50' : '#a09484',
             fontWeight: 500,
           }}
         >
@@ -115,7 +115,7 @@ export function TopBar({ mode, onModeChange, view, onViewChange, ratingDimension
                   <button
                     onClick={() => onFocusUser?.(p.id, p.name)}
                     style={{
-                      all: 'unset', cursor: 'pointer', fontSize: 12.5, color: '#8a7f70',
+                      all: 'unset', cursor: 'pointer', fontSize: 12.5, color: '#a09484',
                       fontWeight: 500, whiteSpace: 'nowrap',
                     }}
                   >

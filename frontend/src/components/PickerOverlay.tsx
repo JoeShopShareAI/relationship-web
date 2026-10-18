@@ -86,7 +86,7 @@ export function PickerOverlay({
         <div style={{ padding: '12px 20px', borderBottom: '1px solid #2a251e', display: 'flex', flexDirection: 'column', gap: 10 }}>
           {/* Depth */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#8a7f70', fontWeight: 500, minWidth: 60 }}>Depth</span>
+            <span style={{ fontSize: 12, color: '#a09484', fontWeight: 500, minWidth: 60 }}>Depth</span>
             <div style={{ display: 'flex', gap: 6 }}>
               {[1, 2, 3].map(d => (
                 <button
@@ -99,7 +99,7 @@ export function PickerOverlay({
                     cursor: 'pointer',
                     fontSize: 12,
                     background: localDepth === d ? '#ee5524' : '#2e2920',
-                    color: localDepth === d ? '#fff' : '#8a7f70',
+                    color: localDepth === d ? '#1c1814' : '#a09484',
                     fontWeight: 500,
                   }}
                 >
@@ -111,7 +111,7 @@ export function PickerOverlay({
 
           {/* Type filter chips */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-            <span style={{ fontSize: 12, color: '#8a7f70', fontWeight: 500, minWidth: 60, paddingTop: 4 }}>Types</span>
+            <span style={{ fontSize: 12, color: '#a09484', fontWeight: 500, minWidth: 60, paddingTop: 4 }}>Types</span>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
               {relationshipTypes.map(rt => {
                 const active = localTypes.includes(rt.key)
@@ -126,7 +126,7 @@ export function PickerOverlay({
                       cursor: 'pointer',
                       fontSize: 11,
                       background: active ? rt.color_hex + '22' : '#2e2920',
-                      color: active ? rt.color_hex : '#8a7f70',
+                      color: active ? rt.color_hex : '#a09484',
                       fontWeight: active ? 600 : 400,
                     }}
                   >
@@ -141,7 +141,7 @@ export function PickerOverlay({
         {/* Eligible user list */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
           {eligibleUsers.length === 0 && (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#8a7f70', fontSize: 13 }}>
+            <div style={{ padding: '20px', textAlign: 'center', color: '#a09484', fontSize: 13 }}>
               No eligible people found with these filters
             </div>
           )}
@@ -167,7 +167,7 @@ export function PickerOverlay({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#c0b8ae' }}>{user.display_name}</div>
                 {user.hop_count > 1 && user.path.length > 1 && (
-                  <div style={{ fontSize: 11, color: '#8a7f70' }}>
+                  <div style={{ fontSize: 11, color: '#a09484' }}>
                     via {user.path.slice(1, -1).join(' → ')}
                   </div>
                 )}
@@ -177,7 +177,7 @@ export function PickerOverlay({
                 borderRadius: 10,
                 background: '#2e2920',
                 fontSize: 11,
-                color: '#8a7f70',
+                color: '#a09484',
               }}>
                 {user.hop_count === 1 ? 'direct' : `${user.hop_count} hops`}
               </span>
@@ -193,7 +193,7 @@ export function PickerOverlay({
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          <div style={{ fontSize: 12, color: '#8a7f70' }}>
+          <div style={{ fontSize: 12, color: '#a09484' }}>
             <span style={{ color: '#1d9e75', fontWeight: 600 }}>{eligibleUsers.length} eligible</span>
             {selected.size > 0 && <span style={{ color: '#ee5524', fontWeight: 600 }}> · {selected.size} selected</span>}
             {ineligibleCount > 0 && <span> · {ineligibleCount} ineligible</span>}
@@ -213,7 +213,7 @@ export function PickerOverlay({
                 borderRadius: 6,
                 border: 'none',
                 background: selected.size > 0 ? '#ee5524' : '#2e2920',
-                color: selected.size > 0 ? '#fff' : '#8a7f70',
+                color: selected.size > 0 ? '#1c1814' : '#a09484',
                 cursor: selected.size > 0 ? 'pointer' : 'default',
                 fontSize: 13,
                 fontWeight: 600,

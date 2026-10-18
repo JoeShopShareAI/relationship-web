@@ -122,7 +122,7 @@ function NodeContent({ data }: { data: RelationshipNodeData }) {
           borderRadius: 4,
           padding: '1px 6px',
           fontSize: 10,
-          color: '#8a7f70',
+          color: '#a09484',
           whiteSpace: 'nowrap',
         }}>
           {(() => {

@@ -14,7 +14,7 @@ function Avatar({ user }: { user: UserSearchResult }) {
     <div style={{
       width: 36, height: 36, borderRadius: '50%', background: '#2e2920',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 12, fontWeight: 600, color: '#8a7f70', flexShrink: 0, overflow: 'hidden',
+      fontSize: 12, fontWeight: 600, color: '#a09484', flexShrink: 0, overflow: 'hidden',
     }}>
       {user.photo_url
         ? <img src={user.photo_url} alt={user.display_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -105,14 +105,14 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
               {step === 'search' ? 'Add a connection' : 'Set relationship type'}
             </div>
             {step === 'types' && selectedUser && (
-              <div style={{ fontSize: 12, color: '#8a7f70', marginTop: 2 }}>
+              <div style={{ fontSize: 12, color: '#a09484', marginTop: 2 }}>
                 with {selectedUser.display_name}
               </div>
             )}
           </div>
           <button
             onClick={onCancel}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#8a7f70', lineHeight: 1 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: '#a09484', lineHeight: 1 }}
           >×</button>
         </div>
 
@@ -135,7 +135,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
             </div>
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {searching && (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#8a7f70', fontSize: 13 }}>
+                <div style={{ padding: '20px', textAlign: 'center', color: '#a09484', fontSize: 13 }}>
                   Searching…
                 </div>
               )}
@@ -143,7 +143,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
                 <div style={{ padding: '12px 20px', color: '#ef4444', fontSize: 13 }}>{searchError}</div>
               )}
               {!searching && query && results.length === 0 && !searchError && (
-                <div style={{ padding: '20px', textAlign: 'center', color: '#8a7f70', fontSize: 13 }}>
+                <div style={{ padding: '20px', textAlign: 'center', color: '#a09484', fontSize: 13 }}>
                   No users found
                 </div>
               )}
@@ -162,7 +162,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
                   <Avatar user={user} />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 500, color: '#c0b8ae' }}>{user.display_name}</div>
-                    <div style={{ fontSize: 12, color: '#8a7f70' }}>{user.id}</div>
+                    <div style={{ fontSize: 12, color: '#a09484' }}>{user.id}</div>
                   </div>
                 </div>
               ))}
@@ -176,7 +176,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
               {/* Primary type */}
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#8a7f70', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#a09484', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Primary relationship *
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -192,7 +192,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
                         fontWeight: 500, border: '2px solid',
                         borderColor: primaryType === rt.key ? rt.color_hex : '#3a342c',
                         background: primaryType === rt.key ? rt.color_hex + '22' : '#2e2920',
-                        color: primaryType === rt.key ? rt.color_hex : '#8a7f70',
+                        color: primaryType === rt.key ? rt.color_hex : '#a09484',
                         transition: 'all 0.1s',
                       }}
                     >
@@ -205,7 +205,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
               {/* Secondary types */}
               {primaryType && (
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#8a7f70', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#a09484', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Also… (optional)
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -218,7 +218,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
                           fontWeight: 500, border: '2px solid',
                           borderColor: secondaryTypes.includes(rt.key) ? rt.color_hex : '#3a342c',
                           background: secondaryTypes.includes(rt.key) ? rt.color_hex + '22' : '#2e2920',
-                          color: secondaryTypes.includes(rt.key) ? rt.color_hex : '#8a7f70',
+                          color: secondaryTypes.includes(rt.key) ? rt.color_hex : '#a09484',
                           transition: 'all 0.1s',
                         }}
                       >
@@ -254,7 +254,7 @@ export function AddConnectionOverlay({ relationshipTypes, onSearch, onConfirm, o
                 style={{
                   padding: '7px 16px', borderRadius: 7, border: 'none',
                   background: primaryType ? '#ee5524' : '#2e2920',
-                  color: primaryType ? '#fff' : '#8a7f70',
+                  color: primaryType ? '#1c1814' : '#a09484',
                   cursor: primaryType && !saving ? 'pointer' : 'not-allowed',
                   fontSize: 13, fontWeight: 600,
                 }}

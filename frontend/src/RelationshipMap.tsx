@@ -222,15 +222,9 @@ export function RelationshipMap(props: RelationshipMapProps) {
     }
   }, [isControlled, controlledInput, apiUrl, mode, renderPickerOverlay, currentUserId, pickerDepth, pickerTypes, pickerRequireTypesAlongPath, authToken])
 
-  // Seed rating dimensions to the backend on mount
-  useEffect(() => {
-    if (!apiUrl || !ratingDimensions.length) return
-    api.upsertRatingDimensions(
-      apiUrl,
-      ratingDimensions.map((d, i) => ({ key: d.key, label: d.label, icon: d.icon, sort_order: i })),
-      authToken,
-    ).catch(() => {})
-  }, [apiUrl, ratingDimensions, authToken])
+  // Rating dimensions are app-wide config the host seeds server-side (pooledTools: admin-only
+  // POST /relmap/rating-dimensions). This component used to upsert its ratingDimensions prop on
+  // every mount, which let any viewer rewrite them; it only reads the prop now.
 
   const pickerEligibleIds = useMemo(() => new Set(pickerEligible.map(u => u.id)), [pickerEligible])
 
