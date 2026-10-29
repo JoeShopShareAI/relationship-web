@@ -22,7 +22,9 @@ export function useForceLayout(
   edges: GraphEdge[],
   width: number,
   height: number,
-  onTick: (positions: Map<string, { x: number; y: number }>) => void,
+  // alpha: the simulation's current energy (1 at start, falling toward 0 as it settles), so a
+  // caller can tell an early frame from a settled one.
+  onTick: (positions: Map<string, { x: number; y: number }>, alpha: number) => void,
 ) {
   const simRef = useRef<Simulation<SimNode, SimLink> | null>(null)
   const nodesRef = useRef<SimNode[]>([])
@@ -62,7 +64,7 @@ export function useForceLayout(
       for (const n of nodesRef.current) {
         positions.set(n.id, { x: n.x ?? 0, y: n.y ?? 0 })
       }
-      onTickRef.current(positions)
+      onTickRef.current(positions, sim.alpha())
     })
 
     simRef.current = sim

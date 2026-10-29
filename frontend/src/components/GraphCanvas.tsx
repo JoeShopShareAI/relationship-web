@@ -150,13 +150,23 @@ export function GraphCanvas({
   const [rfNodes, setRfNodes] = useNodesState<Node>([])
   const [rfEdges, setRfEdges] = useEdgesState<Edge>([])
   const { fitView } = useReactFlow()
-  const hasFittedRef = useRef(false)
+  // Keep the view fitted while the layout settles. A single fit on the first tick zoomed in on
+  // nodes still bunched near the centre, then the simulation spread them out of view, so the
+  // canvas looked blank until Fit View was pressed (pooledTools run 03 PRO-3b, two-node graph).
+  // Refits stop for good once the layout settles or the user pans/zooms themselves.
+  const tickCountRef = useRef(0)
+  const settledRef = useRef(false)
+  const userMovedRef = useRef(false)
 
-  // Reset fit flag whenever the focal user changes
-  useEffect(() => { hasFittedRef.current = false }, [currentUserId])
+  // Start over whenever the focal user changes
+  useEffect(() => {
+    tickCountRef.current = 0
+    settledRef.current = false
+    userMovedRef.current = false
+  }, [currentUserId])
 
   const handleTick = useCallback(
-    (positions: Map<string, { x: number; y: number }>) => {
+    (positions: Map<string, { x: number; y: number }>, alpha: number) => {
       setRfNodes(prev =>
         prev.map(n => {
           const pos = positions.get(n.id)
@@ -164,10 +174,16 @@ export function GraphCanvas({
           return { ...n, position: pos }
         }),
       )
-      // Defer fitView until the force layout has spread nodes out from (0,0)
-      if (!hasFittedRef.current && positions.size > 0) {
-        hasFittedRef.current = true
-        setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 0)
+      if (settledRef.current || userMovedRef.current || positions.size === 0) return
+      const tick = tickCountRef.current++
+      const settled = alpha < 0.05
+      // First tick, every 10th while settling, and once more when it settles. Deferred so
+      // React Flow has the new positions before it measures the bounds.
+      if (tick === 0 || tick % 10 === 0 || settled) {
+        if (settled) settledRef.current = true
+        setTimeout(() => {
+          if (!userMovedRef.current) fitView({ padding: 0.2, duration: settled ? 300 : 0 })
+        }, 0)
       }
     },
     [setRfNodes, fitView],
@@ -257,6 +273,23 @@ export function GraphCanvas({
         onNodeDragStart={handleNodeDragStart}
         onNodeDrag={handleNodeDrag}
         onNodeDragStop={handleNodeDragStop}
+        // A pan or zoom by the user (event is null for our own fitView calls) ends auto-fitting.
+        onMoveStart={event => { if (event) userMovedRef.current = true }}
+        // The person list is the keyboard path to people, not the canvas (decided 2026-10-15).
+        // React Flow otherwise makes every node and edge a tab stop described as "Press enter
+        // or space to select ... Press delete to remove it" -- neither of which this graph
+        // supports (pooledTools run 03 PRO-3b).
+        nodesFocusable={false}
+        edgesFocusable={false}
+        disableKeyboardA11y
+        // React Flow still renders its visually hidden description text (the keyboard-disabled
+        // variant also says "Press enter or space to select"), readable in a screen reader's
+        // browse mode even with nothing pointing at it -- so blank it.
+        ariaLabelConfig={{
+          'node.a11yDescription.default': '',
+          'node.a11yDescription.keyboardDisabled': '',
+          'edge.a11yDescription.default': '',
+        }}
         // React Flow's own default keyboard interaction (select an edge with
         // Enter/Space, remove it with Delete/Backspace) was still active here even
         // though nothing wires edge deletion to a real API call (no onEdgesDelete,

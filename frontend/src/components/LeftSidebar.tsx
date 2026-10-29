@@ -127,15 +127,31 @@ export function LeftSidebar({
         )}
         <div id={listId} {...(onDemand ? { role: 'listbox', 'aria-label': 'Matching people' } : {})}>
         {visibleUsers.map((user, i) => {
-          const edge = edges.find(e => e.target_user_id === user.id)
-          const primaryType = edge?.types[0]
+          // The viewer's own label for this person: their own edge, and its primary type when
+          // that's one of its types. Until 2026-10-28 this took the first edge to the person from
+          // anyone in the graph, and that edge's first type -- so the list could show someone
+          // else's label, or a different type than the Detail panel (pooledTools run 06 CON-2).
+          const edge = edges.find(e => e.owner_user_id === currentUserId && e.target_user_id === user.id)
+          const primaryType = edge?.types.find(t => t.key === edge.primary_type) ?? edge?.types[0]
           const highlighted = onDemand ? i === active : selectedNodeId === user.id
           return (
             <div
               key={user.id}
               id={optionId(user.id)}
               onClick={() => choose(user.id)}
-              {...(onDemand ? { role: 'option', 'aria-selected': i === active } : {})}
+              // Search-on-demand rows are combobox options driven from the input. The full
+              // roster's rows are the keyboard path to people (the canvas nodes aren't tab
+              // stops, decided 2026-10-15), so each is a focusable button.
+              {...(onDemand
+                ? { role: 'option', 'aria-selected': i === active }
+                : {
+                    role: 'button',
+                    tabIndex: 0,
+                    'aria-current': selectedNodeId === user.id ? true : undefined,
+                    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+                      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(user.id) }
+                    },
+                  })}
               style={{
                 display: 'flex',
                 alignItems: 'center',
